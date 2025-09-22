@@ -1,12 +1,20 @@
 package com.adem.users.security;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,13 +28,13 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		
 		String jwt = request.getHeader("Authorization");
-		if (jwt == null || !jwt.startsWith("Bearer ")) {
+		if (jwt == null || !jwt.startsWith(SecParams.PREFIX)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 		JWTVerifier verifier = JWT.require(Algorithm.HMAC256(SecParams.SECRET)).build();
-		// enlever le préfixe Bearer du jwt
-		jwt = jwt.substring(7); // 7 caractères dans "Bearer "
+		
+		jwt = jwt.substring(SecParams.PREFIX.length()); 
 		DecodedJWT decodedJWT = verifier.verify(jwt);
 
 		String username = decodedJWT.getSubject();
